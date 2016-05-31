@@ -13,102 +13,103 @@ void resize(GLFWwindow* window, int width, int height) {
     std::cout << "resize\n";
 }
 
-void init() {
-    float points[] = {0.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f};
-    GLuint pointsVBO = 0;
-    glGenBuffers(1, &pointsVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, pointsVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-    
-    float colors[] = {0.0f, 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f};
-    GLuint colorsVBO = 0;
-    glGenBuffers(1, &colorsVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    
-    // habilitado primeiro atributo do vbo bound atual
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, pointsVBO); // identifica vbo atual
-    // associação do vbo atual com primeiro atributo
-    // 0 identifica que o primeiro atributo está sendo definido
-    // 3, GL_FLOAT identifica que dados são vec3 e estão a cada 3 float.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    
-    // é possível associar outros atributos, como normais, mapeamento e cores
-    // lembre-se: um por vértice!
-    glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
-    // note que agora o atributo 1 está definido
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    // habilitado segundo atributo do vbo bound atual
-    glEnableVertexAttribArray(1);
-    
-//    std::string v_shader = "#version 410\n\
-//    layout(location=0) in vec3 vp;\
-//    layout(location=1) in vec3 vc;\
-//    out vec3 color;\
-//    void main () {\
-//       color = vc;\
-//       gl_Position = vec4 (vp, 1.0);\
-//    }";
-//    
-////    auto teste = s.c_str();
-//    
-//    
-//    glCompileShader(v_shader);
-//    glCompileShader(f_shader);
-//    glAttachShader(s_program, v_shader);
-//    glAttachShader(s_program, f_shader);
-//    glBindAttribLocation(s_program, 0, “vp”);
-//    glBindAttribLocation(s_program, 0, “vc”);
-//    glLinkProgram(s_program);
-}
-
-int main(void) {
+int main () {
+    // start GL context and O/S window using the GLFW helper library
     if (!glfwInit ()) {
-        std::cout << "ERROR: could not start GLFW3\n";
+        fprintf (stderr, "ERROR: could not start GLFW3\n");
         return 1;
     }
     
-    // Caso necessário, definições específicas para SOs, p. e. Apple OSX
-    // Definir como 3.2 para Apple OS X
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // uncomment these lines if on Apple OS X
+    glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow *window = glfwCreateWindow (640, 480, "Teste de versão OpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow (640, 480, "Hello Triangle", NULL, NULL);
     if (!window) {
-        std::cout  << "ERROR: could not open window with GLFW3\n";
+        fprintf (stderr, "ERROR: could not open window with GLFW3\n");
         glfwTerminate();
         return 1;
     }
+    glfwMakeContextCurrent (window);
+    
+    // start GLEW extension handler
+    glewExperimental = GL_TRUE;
+    glewInit ();
     
     // callbacks
     glfwSetWindowSizeCallback(window, resize);
     glfwSetErrorCallback(logErro);
     
-    glfwMakeContextCurrent(window);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
-
-    // inicia manipulador da extensão GLEW
-    glewExperimental = GL_TRUE;
-    glewInit ();
-
-    printf("Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("OpenGL (versão suportada) %s\n", glGetString(GL_VERSION));
-
-    init();
+    // get version info
+    const GLubyte* renderer = glGetString (GL_RENDERER); // get renderer string
+    const GLubyte* version = glGetString (GL_VERSION); // version as a string
+    printf ("Renderer: %s\n", renderer);
+    printf ("OpenGL version supported %s\n", version);
     
-    // encerra contexto GL e outros recursos da GLFW
+    // tell GL to only draw onto a pixel if the shape is closer to the viewer
+    glEnable (GL_DEPTH_TEST); // enable depth-testing
+    glDepthFunc (GL_LESS); // depth-testing interprets a smaller value as "closer"
+    
+    float points[] = {
+        0.0f,  0.5f,  0.0f,
+        0.5f, -0.5f,  0.0f,
+        -0.5f, -0.5f,  0.0f
+    };
+    
+    GLuint vbo = 0;
+    glGenBuffers (1, &vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo);
+    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), points, GL_STATIC_DRAW);
+    
+    GLuint vao = 0;
+    glGenVertexArrays (1, &vao);
+    glBindVertexArray (vao);
+    glEnableVertexAttribArray (0);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    
+    const char* vertex_shader =
+    "#version 400\n"
+    "in vec3 vp;"
+    "void main () {"
+    "  gl_Position = vec4 (vp, 1.0);"
+    "}";
+    
+    const char* fragment_shader =
+    "#version 400\n"
+    "out vec4 frag_colour;"
+    "void main () {"
+    "  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+    "}";
+    
+    GLuint vs = glCreateShader (GL_VERTEX_SHADER);
+    glShaderSource (vs, 1, &vertex_shader, NULL);
+    glCompileShader (vs);
+    GLuint fs = glCreateShader (GL_FRAGMENT_SHADER);
+    glShaderSource (fs, 1, &fragment_shader, NULL);
+    glCompileShader (fs);
+    
+    GLuint shader_programme = glCreateProgram ();
+    glAttachShader (shader_programme, fs);
+    glAttachShader (shader_programme, vs);
+    glLinkProgram (shader_programme);
+    
+    while (!glfwWindowShouldClose (window)) {
+        // wipe the drawing surface clear
+        glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram (shader_programme);
+        glBindVertexArray (vao);
+        // draw points 0-3 from the currently bound VAO with current in-use shader
+        glDrawArrays (GL_TRIANGLES, 0, 3);
+        // update other events like input handling
+        glfwPollEvents ();
+        // put the stuff we've been drawing onto the display
+        glfwSwapBuffers (window);
+    }
+    
+    // close GL context and any other GLFW resources
     glfwTerminate();
-    
-    std::cout << "SUCCESS\n";
     return 0;
 }
