@@ -1,6 +1,6 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
+#include <GL/glew.h> /* include GLEW and new version of GL on Windows */
+#include <GLFW/glfw3.h> /* GLFW helper library */
+#include <stdio.h>
 
 void logErro(int cod, const char * description) {
     // imprime no console ou grava em arquivo.
@@ -10,7 +10,7 @@ void logErro(int cod, const char * description) {
 void resize(GLFWwindow* window, int width, int height) {
     // redefine propriedades do volume de visualização e tamanho da viewport
     // glViewport...
-    std::cout << "resize\n";
+//    std::cout << "resize\n";
 }
 
 int main () {
